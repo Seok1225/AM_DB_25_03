@@ -1,53 +1,88 @@
 package org.example;
 
-
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.*;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("==프로그램 시작==");
-
+        String url = "jdbc:mariadb://localhost:3306/AM_DB_25_03?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Seoul";
+        String userName = "root";
+        String password = "";
         Scanner sc = new Scanner(System.in);
 
-        int lastArticleId = 0;
-        List<Article> articles = new ArrayList<>();
+        try (
+                Connection conn = DriverManager.getConnection(url, userName, password)
+        ) {
+            while (true) {
+                System.out.print("명령어 > ");
+                String command = sc.nextLine().trim();
 
-        while (true) {
-            System.out.print("명령어 > ");
-            String cmd = sc.nextLine().trim();
+                switch (command) {
+                    case "article write":
+                        writeArticle(sc, conn);
+                        break;
 
-            if (cmd.equals("exit")) {
-                break;
-            }
-            if (cmd.equals("article write")) {
-                System.out.println("==글쓰기==");
-                int id = lastArticleId + 1;
-                System.out.print("제목 : ");
-                String title = sc.nextLine().trim();
-                System.out.print("내용 : ");
-                String body = sc.nextLine().trim();
+                    case "article list":
+                        listArticles(conn);
+                        break;
 
-                Article article = new Article(id, title, body);
-                articles.add(article);
+                    case "exit":
+                        System.out.println("프로그램을 종료합니다.");
+                        return;
 
-                lastArticleId++;
-                System.out.println(article);
-            } else if (cmd.equals("article list")) {
-                System.out.println("==목록==");
-                if (articles.size() == 0) {
-                    System.out.println("게시글 없음");
-                    continue;
-                }
-                System.out.println("   번호    /    제목    ");
-                for (Article article : articles) {
-                    System.out.printf("   %d     /   %s    \n", article.getId(), article.getTitle());
+                    default:
+                        System.out.println("알 수 없는 명령어입니다.");
+                        break;
                 }
             }
+        } catch (SQLException e) {
+            System.out.println("DB 연결 실패!");
+            e.printStackTrace();
         }
+    }
 
-        System.out.println("==프로그램 종료==");
-        sc.close();
+    private static void writeArticle(Scanner sc, Connection conn) {
+        try {
+            System.out.print("제목을 입력하세요: ");
+            String title = sc.nextLine();
+
+            System.out.print("내용을 입력하세요: ");
+            String body = sc.nextLine();
+
+            String sql = "INSERT INTO jdbc (title, body) VALUES (?, ?)";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, title);
+            pstmt.setString(2, body);
+
+            int rows = pstmt.executeUpdate();
+            if (rows > 0) {
+                System.out.println("글이 성공적으로 저장되었습니다.");
+            }
+        } catch (SQLException e) {
+            System.out.println("글 저장 중 오류 발생!");
+            e.printStackTrace();
+        }
+    }
+
+    // 글 목록 조회
+    public static void listArticles(Connection conn) {
+        String sql = "SELECT * FROM jdbc ORDER BY id DESC";
+
+        try (
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                ResultSet rs = pstmt.executeQuery()
+        ) {
+            System.out.println("=== 게시글 목록 ===");
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String title = rs.getString("title");
+                String body = rs.getString("body");
+
+                System.out.printf("번호: %d | 제목: %s | 내용: %s%n", id, title, body);
+            }
+        } catch (SQLException e) {
+            System.out.println("글 목록 조회 중 오류 발생!");
+            e.printStackTrace();
+        }
     }
 }
