@@ -26,6 +26,9 @@ public class Main {
                     case "article modify":
                         modifyArticle(sc, conn);
                         break;
+                    case "article delete":
+                        deleteArticle(sc, conn);
+                        break;
                     case "exit":
                         System.out.println("프로그램을 종료합니다.");
                         return;
@@ -124,6 +127,39 @@ public class Main {
 
         } catch (SQLException e) {
             System.out.println("글 수정 중에 오류가 있었습니다.");
+            e.printStackTrace();
+        } catch (NumberFormatException e) {
+            System.out.println("ID는 숫자로 입력해주세요.");
+        }
+    }
+    private static void deleteArticle(Scanner sc, Connection conn) {
+        try {
+            System.out.print("삭제할 글의 ID를 입력해주세요: ");
+            int id = Integer.parseInt(sc.nextLine());
+
+            // 글이 존재하는지 확인
+            String checkSql = "SELECT * FROM jdbc WHERE id = ?";
+            PreparedStatement checkStmt = conn.prepareStatement(checkSql);
+            checkStmt.setInt(1, id);
+            ResultSet rs = checkStmt.executeQuery();
+
+            if (!rs.next()) {
+                System.out.println("해당 ID의 글이 존재하지 않습니다.");
+                return;
+            }
+
+            // 삭제 실행
+            String deleteSql = "DELETE FROM jdbc WHERE id = ?";
+            PreparedStatement deleteStmt = conn.prepareStatement(deleteSql);
+            deleteStmt.setInt(1, id);
+            int rows = deleteStmt.executeUpdate();
+
+            if (rows > 0) {
+                System.out.println("글이 성공적으로 삭제되었습니다.");
+            }
+
+        } catch (SQLException e) {
+            System.out.println("글 삭제 중에 오류가 있었습니다.");
             e.printStackTrace();
         } catch (NumberFormatException e) {
             System.out.println("ID는 숫자로 입력해주세요.");
