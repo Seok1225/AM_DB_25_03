@@ -3,7 +3,9 @@ package org.example;
 import org.example.util.DBUtil;
 import org.example.util.SecSql;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -116,33 +118,39 @@ public class App {
                 return 0;
             }
 
+            SecSql sql = new SecSql();
+            sql.append("SELECT *");
+            sql.append("FROM article");
+            sql.append("WHERE id = ?;", id);
+
+            Map<String, Object> articleMap = DBUtil.selectRow(conn, sql);
+
+            if (articleMap.isEmpty()) {
+                System.out.println(id + "번 글은 없음");
+                return 0;
+            }
+
             System.out.println("==수정==");
             System.out.print("새 제목 : ");
             String title = sc.nextLine().trim();
             System.out.print("새 내용 : ");
             String body = sc.nextLine().trim();
 
-            SecSql sql = new SecSql();
+            sql = new SecSql();
             sql.append("UPDATE article");
             sql.append("SET updateDate = NOW()");
-
-            if (!title.isEmpty()) {
+            if (title.length() > 0) {
                 sql.append(", title = ?", title);
             }
-            if (!body.isEmpty()) {
-                sql.append(", `body` = ?", body);
+            if (body.length() > 0) {
+                sql.append(",`body` = ?", body);
             }
+            sql.append("WHERE id = ?;", id);
 
-            sql.append("WHERE id = ?", id);
+            DBUtil.update(conn, sql);
 
-            int affectedRows = DBUtil.update(conn, sql);
-
-            if (affectedRows > 0) {
-                System.out.println(id + "번 글이 수정되었습니다.");
-            } else {
-                System.out.println("해당 번호의 글이 존재하지 않습니다.");
-            }
-        }else if (cmd.startsWith("article detail")) {
+            System.out.println(id + "번 글이 수정되었습니다.");
+        } else if (cmd.startsWith("article detail")) {
             int id = 0;
             try {
                 id = Integer.parseInt(cmd.split(" ")[2]);
@@ -171,6 +179,36 @@ public class App {
             System.out.printf("제목 : %s\n", article.getTitle());
             System.out.printf("내용 : %s\n", article.getBody());
 
+        } else if (cmd.startsWith("article delete")) {
+            int id = 0;
+
+            try {
+                id = Integer.parseInt(cmd.split(" ")[2]);
+            } catch (Exception e) {
+                System.out.println("번호는 정수로 입력해");
+                return 0;
+            }
+
+            SecSql sql = new SecSql();
+            sql.append("SELECT *");
+            sql.append("FROM article");
+            sql.append("WHERE id = ?;", id);
+
+            Map<String, Object> articleMap = DBUtil.selectRow(conn, sql);
+
+            if (articleMap.isEmpty()) {
+                System.out.println(id + "번 글은 없음");
+                return 0;
+            }
+
+            System.out.println("==삭제==");
+            sql = new SecSql();
+            sql.append("DELETE FROM article");
+            sql.append("WHERE id = ?;", id);
+
+            DBUtil.delete(conn, sql);
+
+            System.out.println(id + "번 글이 삭제되었습니다.");
         }
         return 0;
     }
