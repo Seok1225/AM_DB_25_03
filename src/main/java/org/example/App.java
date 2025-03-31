@@ -142,6 +142,35 @@ public class App {
             } else {
                 System.out.println("해당 번호의 글이 존재하지 않습니다.");
             }
+        }else if (cmd.startsWith("article detail")) {
+            int id = 0;
+            try {
+                id = Integer.parseInt(cmd.split(" ")[2]);
+            } catch (Exception e) {
+                System.out.println("번호는 정수로 입력해");
+                return 0;
+            }
+
+            SecSql sql = new SecSql();
+            sql.append("SELECT *");
+            sql.append("FROM article");
+            sql.append("WHERE id = ?", id);
+
+            Map<String, Object> articleMap = DBUtil.selectRow(conn, sql);
+
+            if (articleMap.isEmpty()) {
+                System.out.println("해당 번호의 글이 존재하지 않습니다.");
+                return 0;
+            }
+
+            Article article = new Article(articleMap);
+            System.out.println("== 게시글 상세 ==");
+            System.out.printf("번호 : %d\n", article.getId());
+            System.out.printf("작성일 : %s\n", article.getRegDate());
+            System.out.printf("수정일 : %s\n", article.getUpdateDate());
+            System.out.printf("제목 : %s\n", article.getTitle());
+            System.out.printf("내용 : %s\n", article.getBody());
+
         }
         return 0;
     }
