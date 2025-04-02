@@ -31,3 +31,36 @@ SET regDate = NOW(),
 select *
 from article
 order by id desc;
+
+CREATE TABLE `member`(
+                         id INT(10) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+                         regDate DATETIME NOT NULL,
+                         updateDate DATETIME NOT NULL,
+                         loginId CHAR(100) NOT NULL,
+                         loginPw CHAR(100) NOT NULL,
+                         `name` TEXT NOT NULL
+);
+
+INSERT INTO `member`
+SET regDate = NOW(),
+    updateDate = NOW(),
+    loginId = 'test1',
+    loginPw = 'test1',
+    `name` = '김철수';
+
+INSERT INTO `member`
+SET regDate = NOW(),
+    updateDate = NOW(),
+    loginId = 'test2',
+    loginPw = 'test2',
+    `name` = '김이슬';
+
+INSERT INTO `member`
+SET regDate = NOW(),
+    updateDate = NOW(),
+    loginId = 'test3',
+    loginPw = 'test3',
+    `name` = '김미영';
+
+select *
+from member
